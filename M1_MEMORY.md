@@ -25,6 +25,7 @@
 - [x] TEST: graceful-failure-without-key — M1_DUAL_BRAIN_ENABLED=true + no key logs warning and falls back to Step 1 (no crash)
 - [x] TEST: manual start, verify `/health` shows dual_brain fields, verify rate limiter works
 - [x] DOC: reconciled with deferred-items list (no overlap)
+- [x] **LIVE VERIFIED 2026-07-21** — Gemini primary + Groq fallback, real alert generation confirmed, rate-limiter confirmed, recovery-detection confirmed, zero crashes.
 
 ### Phase 2a — Groq Fallback (Step 2a)
 - [x] CRUD: add `callGroq()` — raw fetch to Groq's /chat/completions (no SDK)
@@ -35,7 +36,14 @@
 - [x] CRUD: soft-fail accepts either key (Gemini or Groq), warns only if both missing
 - [x] TEST: live emergency-path — core Maya down, Gemini empty → Groq fired real alert, log showed "via: groq", rate limiter engaged, recovery detected
 
-**Live test result:** Groq fallback verified — Gemini empty, Groq fired real alerts, rate_limited:true confirmed, recovery detected.
+---
+
+### Phase 3 — Smart Core (next)
+- [ ] Research: rank best free LLMs (Gemini free, Groq free, Claude free, Llama 3.x, Mistral, DeepSeek) by capability + free-tier limits
+- [ ] Adopt: top-ranked model as M1's new default in the Gemini→Groq chain
+- [ ] Key-gen helper: interactive CLI to walk through obtaining API key (auto-open URL, human-tap-only-at-captcha)
+- [ ] CRUD: update provider chain with new default, fallback order
+- [ ] TEST: live verify new model produces better alerts
 
 ---
 
@@ -55,6 +63,6 @@
 ---
 
 ## Current Status
-- **Active Phase:** Phase 2a — Groq Fallback (verified live)
-- **Next Step:** Design Phase 3
+- **Active Phase:** Phase 3 — Smart Core (pending)
+- **Next Step:** Research — rank best free LLMs by capability + free-tier limits, adopt top model
 - **Notes:** M1 is a separate process, separate repo, no code shared with M-2.0. Connects to core Maya via HTTP only.
