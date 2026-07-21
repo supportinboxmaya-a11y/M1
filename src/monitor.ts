@@ -1,5 +1,6 @@
 import { writeHealth, HealthSnapshot } from "./storage";
 import { M1Config } from "./config";
+import { checkAndAlert } from "./dual-brain";
 
 export interface MonitorResult {
   snapshot: HealthSnapshot;
@@ -23,6 +24,7 @@ async function pingCoreMaya(cfg: M1Config): Promise<HealthSnapshot> {
     if (!liveRes.ok) {
       const snap: HealthSnapshot = { live: false, ready: null, error: `liveness returned ${liveRes.status}`, lastCheck: now };
       writeHealth(snap);
+      checkAndAlert(cfg); // fire-and-forget, no await needed for monitor loop timing
       return snap;
     }
 
@@ -38,6 +40,7 @@ async function pingCoreMaya(cfg: M1Config): Promise<HealthSnapshot> {
 
     const snap: HealthSnapshot = { live: true, ready, error: null, lastCheck: now };
     writeHealth(snap);
+    checkAndAlert(cfg);
     return snap;
   } catch (err: any) {
     const snap: HealthSnapshot = {
@@ -47,6 +50,7 @@ async function pingCoreMaya(cfg: M1Config): Promise<HealthSnapshot> {
       lastCheck: now,
     };
     writeHealth(snap);
+    checkAndAlert(cfg);
     return snap;
   }
 }

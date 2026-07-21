@@ -8,6 +8,12 @@ export interface M1Config {
   port: number;
   enabled: boolean;
   pingIntervalMs: number;
+  // Dual-brain
+  dualBrainEnabled: boolean;
+  geminiApiKey: string;
+  geminiCooldownMin: number;
+  analysisWindowMin: number;
+  historyMaxEntries: number;
 }
 
 function required(name: string): string {
@@ -39,7 +45,17 @@ export function loadConfig(): M1Config {
     port: optionalInt("M1_PORT", 3001),
     enabled: optional("M1_ENABLED", "false").toLowerCase() === "true",
     pingIntervalMs: optionalInt("M1_PING_INTERVAL_MS", 30_000),
+    dualBrainEnabled: optional("M1_DUAL_BRAIN_ENABLED", "false").toLowerCase() === "true",
+    geminiApiKey: optional("GEMINI_API_KEY", ""),
+    geminiCooldownMin: optionalInt("M1_GEMINI_COOLDOWN_MIN", 15),
+    analysisWindowMin: optionalInt("M1_ANALYSIS_WINDOW_MIN", 5),
+    historyMaxEntries: optionalInt("M1_HISTORY_MAX_ENTRIES", 100),
   };
+
+  // Validate: dual brain requires a Gemini key
+  if (cfg.dualBrainEnabled && !cfg.geminiApiKey) {
+    throw new Error("M1_DUAL_BRAIN_ENABLED=true but GEMINI_API_KEY is not set");
+  }
 
   cached = cfg;
   return cfg;

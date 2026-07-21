@@ -15,8 +15,15 @@
 - [x] CRUD: flag gating (`M1_ENABLED`), try/except soft-fail everywhere
 - [x] TEST: manual start, verify M1 boots, verify it pings core Maya, verify `/health` responds
 
-### Phase 2 — (future)
-- TBD
+### Phase 2 — Dual-Brain Layer (Step 2)
+- [x] CRUD: `src/dual-brain.ts` — Gemini HTTP client + rate limiter + pattern detection + emergency fallback
+- [x] CRUD: extend `config.ts` with `M1_DUAL_BRAIN_ENABLED`, `GEMINI_API_KEY`, cooldown, analysis window, history max
+- [x] CRUD: extend `storage.ts` with rolling `history[]` array + `dual_brain` state section
+- [x] CRUD: `monitor.ts` calls `checkAndAlert()` after each ping (fire-and-forget)
+- [x] CRUD: `GET /health` returns `dual_brain` section with alert + analysis
+- [x] CRUD: flag-gated (`M1_DUAL_BRAIN_ENABLED=false`), try/except soft-fail everywhere
+- [x] TEST: manual start, verify `/health` shows dual_brain fields, verify rate limiter works
+- [x] DOC: reconciled with deferred-items list (no overlap)
 
 ---
 
@@ -30,11 +37,12 @@
 | Flag | Default | Current |
 |------|---------|---------|
 | M1_ENABLED | false | false |
+| M1_DUAL_BRAIN_ENABLED | false | false |
 *(add more as phases add them)*
 
 ---
 
 ## Current Status
-- **Active Phase:** Phase 2 — (pending)
-- **Next Step:** Design Phase 2 scope
+- **Active Phase:** Phase 2 — Dual-Brain Layer (complete)
+- **Next Step:** Design Phase 3 scope
 - **Notes:** M1 is a separate process, separate repo, no code shared with M-2.0. Connects to core Maya via HTTP only.

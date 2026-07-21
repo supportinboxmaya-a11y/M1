@@ -1,6 +1,8 @@
 import { Router, Request, Response } from "express";
 import { getMonitorResult } from "./monitor";
 import { loadConfig } from "./config";
+import { getDualBrainStatus, analyzeHistory } from "./dual-brain";
+import { readState } from "./storage";
 
 const router = Router();
 
@@ -8,6 +10,9 @@ const router = Router();
 router.get("/health", (_req: Request, res: Response) => {
   const cfg = loadConfig();
   const result = getMonitorResult();
+  const dualBrain = getDualBrainStatus(cfg);
+  const state = readState();
+  const analysis = analyzeHistory(state.history || [], cfg.analysisWindowMin);
 
   res.json({
     status: "ok",
@@ -18,6 +23,18 @@ router.get("/health", (_req: Request, res: Response) => {
       ready: result.snapshot.ready,
       error: result.snapshot.error,
       last_check: result.snapshot.lastCheck,
+    },
+    dual_brain: {
+      enabled: dualBrain.enabled,
+      rate_limited: dualBrain.rateLimited,
+      last_gemini_call: dualBrain.lastGeminiCall,
+      last_alert: dualBrain.lastAlert,
+      total_gemini_calls: dualBrain.totalGeminiCalls,
+      analysis: {
+        failures_last_n_min: analysis.failures,
+        total_in_window: analysis.total,
+        window_minutes: analysis.windowMinutes,
+      },
     },
     m1: {
       port: cfg.port,
