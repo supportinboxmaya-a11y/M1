@@ -22,8 +22,11 @@
 - [x] CRUD: `monitor.ts` calls `checkAndAlert()` after each ping (fire-and-forget)
 - [x] CRUD: `GET /health` returns `dual_brain` section with alert + analysis
 - [x] CRUD: flag-gated (`M1_DUAL_BRAIN_ENABLED=false`), try/except soft-fail everywhere
+- [x] TEST: graceful-failure-without-key — M1_DUAL_BRAIN_ENABLED=true + no key logs warning and falls back to Step 1 (no crash)
 - [x] TEST: manual start, verify `/health` shows dual_brain fields, verify rate limiter works
 - [x] DOC: reconciled with deferred-items list (no overlap)
+
+**⚠️ LIVE emergency-path test PENDING — committed as 1e7e6f4.** Needs a real Gemini key added to .env as M1_EMERGENCY_GEMINI_KEY, then a core-Maya-down test to fire the real Gemini call and confirm alert text + total_gemini_calls increment + cooldown behavior. Do not mark Phase 2 fully verified until that's done.
 
 ---
 
@@ -43,6 +46,6 @@
 ---
 
 ## Current Status
-- **Active Phase:** Phase 2 — Dual-Brain Layer (complete)
-- **Next Step:** Design Phase 3 scope
+- **Active Phase:** Phase 2 — Dual-Brain Layer (code complete, LIVE test pending)
+- **Next Step:** Owner adds M1_EMERGENCY_GEMINI_KEY to .env → run live emergency-path test → commit verification → then design Phase 3
 - **Notes:** M1 is a separate process, separate repo, no code shared with M-2.0. Connects to core Maya via HTTP only.

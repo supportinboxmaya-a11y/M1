@@ -46,15 +46,16 @@ export function loadConfig(): M1Config {
     enabled: optional("M1_ENABLED", "false").toLowerCase() === "true",
     pingIntervalMs: optionalInt("M1_PING_INTERVAL_MS", 30_000),
     dualBrainEnabled: optional("M1_DUAL_BRAIN_ENABLED", "false").toLowerCase() === "true",
-    geminiApiKey: optional("GEMINI_API_KEY", ""),
+    geminiApiKey: optional("M1_EMERGENCY_GEMINI_KEY", optional("GEMINI_API_KEY", "")),
     geminiCooldownMin: optionalInt("M1_GEMINI_COOLDOWN_MIN", 15),
     analysisWindowMin: optionalInt("M1_ANALYSIS_WINDOW_MIN", 5),
     historyMaxEntries: optionalInt("M1_HISTORY_MAX_ENTRIES", 100),
   };
 
-  // Validate: dual brain requires a Gemini key
+  // Soft-fail: dual brain requires a Gemini key — warn and disable
   if (cfg.dualBrainEnabled && !cfg.geminiApiKey) {
-    throw new Error("M1_DUAL_BRAIN_ENABLED=true but GEMINI_API_KEY is not set");
+    console.warn("[M1] M1_DUAL_BRAIN_ENABLED=true but no Gemini key set (checked M1_EMERGENCY_GEMINI_KEY, GEMINI_API_KEY). Dual brain disabled. Set a key and restart to activate.");
+    cfg.dualBrainEnabled = false;
   }
 
   cached = cfg;
