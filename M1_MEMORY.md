@@ -26,7 +26,16 @@
 - [x] TEST: manual start, verify `/health` shows dual_brain fields, verify rate limiter works
 - [x] DOC: reconciled with deferred-items list (no overlap)
 
-**⚠️ LIVE emergency-path test PENDING — committed as 1e7e6f4.** Needs a real Gemini key added to .env as M1_EMERGENCY_GEMINI_KEY, then a core-Maya-down test to fire the real Gemini call and confirm alert text + total_gemini_calls increment + cooldown behavior. Do not mark Phase 2 fully verified until that's done.
+### Phase 2a — Groq Fallback (Step 2a)
+- [x] CRUD: add `callGroq()` — raw fetch to Groq's /chat/completions (no SDK)
+- [x] CRUD: chain Gemini → Groq — tries Gemini first, falls through to Groq on any failure
+- [x] CRUD: `last_provider` tracked in state + /health output
+- [x] CRUD: log line shows "via: gemini" or "via: groq" so you know which fired
+- [x] CRUD: config + .env.example updated with M1_EMERGENCY_GROQ_KEY
+- [x] CRUD: soft-fail accepts either key (Gemini or Groq), warns only if both missing
+- [x] TEST: live emergency-path — core Maya down, Gemini empty → Groq fired real alert, log showed "via: groq", rate limiter engaged, recovery detected
+
+**Live test result:** Groq fallback verified — Gemini empty, Groq fired real alerts, rate_limited:true confirmed, recovery detected.
 
 ---
 
@@ -46,6 +55,6 @@
 ---
 
 ## Current Status
-- **Active Phase:** Phase 2 — Dual-Brain Layer (code complete, LIVE test pending)
-- **Next Step:** Owner adds M1_EMERGENCY_GEMINI_KEY to .env → run live emergency-path test → commit verification → then design Phase 3
+- **Active Phase:** Phase 2a — Groq Fallback (verified live)
+- **Next Step:** Design Phase 3
 - **Notes:** M1 is a separate process, separate repo, no code shared with M-2.0. Connects to core Maya via HTTP only.

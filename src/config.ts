@@ -11,6 +11,7 @@ export interface M1Config {
   // Dual-brain
   dualBrainEnabled: boolean;
   geminiApiKey: string;
+  groqApiKey: string;
   geminiCooldownMin: number;
   analysisWindowMin: number;
   historyMaxEntries: number;
@@ -47,14 +48,15 @@ export function loadConfig(): M1Config {
     pingIntervalMs: optionalInt("M1_PING_INTERVAL_MS", 30_000),
     dualBrainEnabled: optional("M1_DUAL_BRAIN_ENABLED", "false").toLowerCase() === "true",
     geminiApiKey: optional("M1_EMERGENCY_GEMINI_KEY", optional("GEMINI_API_KEY", "")),
+    groqApiKey: optional("M1_EMERGENCY_GROQ_KEY", ""),
     geminiCooldownMin: optionalInt("M1_GEMINI_COOLDOWN_MIN", 15),
     analysisWindowMin: optionalInt("M1_ANALYSIS_WINDOW_MIN", 5),
     historyMaxEntries: optionalInt("M1_HISTORY_MAX_ENTRIES", 100),
   };
 
-  // Soft-fail: dual brain requires a Gemini key — warn and disable
-  if (cfg.dualBrainEnabled && !cfg.geminiApiKey) {
-    console.warn("[M1] M1_DUAL_BRAIN_ENABLED=true but no Gemini key set (checked M1_EMERGENCY_GEMINI_KEY, GEMINI_API_KEY). Dual brain disabled. Set a key and restart to activate.");
+  // Soft-fail: dual brain needs at least one provider key — warn and disable if none
+  if (cfg.dualBrainEnabled && !cfg.geminiApiKey && !cfg.groqApiKey) {
+    console.warn("[M1] M1_DUAL_BRAIN_ENABLED=true but no provider key set (checked M1_EMERGENCY_GEMINI_KEY, GEMINI_API_KEY, M1_EMERGENCY_GROQ_KEY). Dual brain disabled. Set at least one key and restart to activate.");
     cfg.dualBrainEnabled = false;
   }
 

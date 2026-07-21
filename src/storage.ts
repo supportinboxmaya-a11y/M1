@@ -25,6 +25,7 @@ export interface HistoryEntry {
 export interface DualBrainState {
   lastGeminiCall: string | null;
   lastAlert: string | null;
+  lastProvider: string | null;
   totalGeminiCalls: number;
 }
 
@@ -46,6 +47,7 @@ function defaultState(): M1State {
     dual_brain: {
       lastGeminiCall: null,
       lastAlert: null,
+      lastProvider: null,
       totalGeminiCalls: 0,
     },
   };
@@ -71,7 +73,7 @@ export function writeHealth(snapshot: HealthSnapshot): void {
     state.history = [];
   }
   if (!state.dual_brain) {
-    state.dual_brain = { lastGeminiCall: null, lastAlert: null, totalGeminiCalls: 0 };
+    state.dual_brain = { lastGeminiCall: null, lastAlert: null, lastProvider: null, totalGeminiCalls: 0 };
   }
 
   state.health = snapshot;

@@ -29,6 +29,7 @@ router.get("/health", (_req: Request, res: Response) => {
       rate_limited: dualBrain.rateLimited,
       last_gemini_call: dualBrain.lastGeminiCall,
       last_alert: dualBrain.lastAlert,
+      last_provider: dualBrain.lastProvider,
       total_gemini_calls: dualBrain.totalGeminiCalls,
       analysis: {
         failures_last_n_min: analysis.failures,
