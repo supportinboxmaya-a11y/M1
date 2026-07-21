@@ -1,7 +1,45 @@
 import { M1Config } from "./config";
 import { readState, updateDualBrain, HistoryEntry } from "./storage";
 
-// ── Gemini ───────────────────────────────────────────────────────────────
+// ── NVIDIA NIM (primary) ─────────────────────────────────────────────────
+const NIM_BASE = "https://integrate.api.nvidia.com/v1";
+
+async function callNim(prompt: string, cfg: M1Config): Promise<string | null> {
+  if (!cfg.nvidiaNimKey) return null;
+
+  try {
+    const res = await fetch(`${NIM_BASE}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${cfg.nvidiaNimKey}`,
+      },
+      body: JSON.stringify({
+        model: cfg.nvidiaNimModel,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 300,
+      }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok) {
+      console.error(`[M1:dual-brain] NVIDIA NIM returned ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      return null;
+    }
+    const body: any = await res.json();
+    const text = body?.choices?.[0]?.message?.content;
+    if (!text) {
+      console.error("[M1:dual-brain] NVIDIA NIM response missing text");
+      return null;
+    }
+    return text;
+  } catch (err: any) {
+    console.error("[M1:dual-brain] NVIDIA NIM call failed:", err?.message ?? String(err));
+    return null;
+  }
+}
+
+// ── Gemini (fallback 1) ─────────────────────────────────────────────────
 const GEMINI_MODEL = "gemini-2.0-flash";
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -129,16 +167,21 @@ ${historyLines}
 
 Generate a brief human-readable status alert. State what's down, for how long (based on timestamps), and whether a pattern is visible. Keep it under 5 sentences.`;
 
-  // Try Gemini first, then Groq
+  // Provider chain: NVIDIA NIM (primary) → Gemini (fallback 1) → Groq (fallback 2)
   let alert: string | null = null;
   let provider: string | null = null;
 
-  alert = await callGemini(prompt, cfg);
+  alert = await callNim(prompt, cfg);
   if (alert) {
-    provider = "gemini";
+    provider = "nim";
   } else {
-    alert = await callGroq(prompt, cfg);
-    if (alert) provider = "groq";
+    alert = await callGemini(prompt, cfg);
+    if (alert) {
+      provider = "gemini";
+    } else {
+      alert = await callGroq(prompt, cfg);
+      if (alert) provider = "groq";
+    }
   }
 
   markProviderCalled();

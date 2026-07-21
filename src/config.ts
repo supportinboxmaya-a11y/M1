@@ -10,6 +10,8 @@ export interface M1Config {
   pingIntervalMs: number;
   // Dual-brain
   dualBrainEnabled: boolean;
+  nvidiaNimKey: string;
+  nvidiaNimModel: string;
   geminiApiKey: string;
   groqApiKey: string;
   geminiCooldownMin: number;
@@ -47,6 +49,8 @@ export function loadConfig(): M1Config {
     enabled: optional("M1_ENABLED", "false").toLowerCase() === "true",
     pingIntervalMs: optionalInt("M1_PING_INTERVAL_MS", 30_000),
     dualBrainEnabled: optional("M1_DUAL_BRAIN_ENABLED", "false").toLowerCase() === "true",
+    nvidiaNimKey: optional("NVIDIA_NIM_KEY", ""),
+    nvidiaNimModel: optional("M1_NVIDIA_NIM_MODEL", "deepseek-ai/deepseek-v4-pro"),
     geminiApiKey: optional("M1_EMERGENCY_GEMINI_KEY", optional("GEMINI_API_KEY", "")),
     groqApiKey: optional("M1_EMERGENCY_GROQ_KEY", ""),
     geminiCooldownMin: optionalInt("M1_GEMINI_COOLDOWN_MIN", 15),
@@ -55,8 +59,8 @@ export function loadConfig(): M1Config {
   };
 
   // Soft-fail: dual brain needs at least one provider key — warn and disable if none
-  if (cfg.dualBrainEnabled && !cfg.geminiApiKey && !cfg.groqApiKey) {
-    console.warn("[M1] M1_DUAL_BRAIN_ENABLED=true but no provider key set (checked M1_EMERGENCY_GEMINI_KEY, GEMINI_API_KEY, M1_EMERGENCY_GROQ_KEY). Dual brain disabled. Set at least one key and restart to activate.");
+  if (cfg.dualBrainEnabled && !cfg.nvidiaNimKey && !cfg.geminiApiKey && !cfg.groqApiKey) {
+    console.warn("[M1] M1_DUAL_BRAIN_ENABLED=true but no provider key set (checked NVIDIA_NIM_KEY, M1_EMERGENCY_GEMINI_KEY, GEMINI_API_KEY, M1_EMERGENCY_GROQ_KEY). Dual brain disabled. Set at least one key and restart to activate.");
     cfg.dualBrainEnabled = false;
   }
 

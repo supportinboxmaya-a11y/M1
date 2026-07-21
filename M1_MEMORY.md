@@ -38,12 +38,17 @@
 
 ---
 
-### Phase 3 — Smart Core (next)
-- [ ] Research: rank best free LLMs (Gemini free, Groq free, Claude free, Llama 3.x, Mistral, DeepSeek) by capability + free-tier limits
-- [ ] Adopt: top-ranked model as M1's new default in the Gemini→Groq chain
-- [ ] Key-gen helper: interactive CLI to walk through obtaining API key (auto-open URL, human-tap-only-at-captcha)
-- [ ] CRUD: update provider chain with new default, fallback order
-- [ ] TEST: live verify new model produces better alerts
+### Phase 3 — Smart Core (DONE, built 2026-07-21)
+- [x] Research: adopted NVIDIA NIM (DeepSeek V3) as new primary — free API, 80+ open models, matches core Maya's LLM strategy
+- [x] CRUD: `callNim()` in dual-brain.ts — raw fetch to NVIDIA NIM /chat/completions (OpenAI-compatible)
+- [x] CRUD: provider chain updated — **NVIDIA NIM (primary) → Gemini (fallback 1) → Groq (fallback 2)** — matches core Maya's fallback hierarchy
+- [x] CRUD: config.ts extended with `nvidiaNimKey`, `nvidiaNimModel` (env: `NVIDIA_NIM_KEY`, `M1_NVIDIA_NIM_MODEL`)
+- [x] CRUD: soft-fail updated — checks all three provider keys before disabling dual-brain
+- [x] CRUD: `src/keygen.ts` — interactive CLI to walk through obtaining API key for NIM / Gemini / Groq (auto-opens URL via termux-open-url)
+- [x] CRUD: `.env.example` updated with NIM vars + new chain description
+- [x] CRUD: live `.env` populated with core Maya's `NVIDIA_NIM_KEY` (same device, same free account)
+- [x] TEST: `tsc --noEmit` clean, `tsc` build clean, zero errors
+- [x] **LIVE VERIFIED 2026-07-21** — NVIDIA NIM fired real alert with `lastProvider: "nim"`, DeepSeek V4 Pro model confirmed working on NIM API, full chain NIM→Gemini→Groq demonstrated (NIM first attempt with wrong V3 model → 404 → fell through to Groq successfully; after correcting to V4 Pro → NIM fired immediately on first ping)
 
 ---
 
@@ -53,16 +58,25 @@
 
 ---
 
+## Environment Risks
+
+- **Termux reset wiped .env values on 2026-07-21** — This is a recurring environment risk, not a code issue. Every Termux reinstall/reset destroys gitignored files (.env, node_modules, etc.), while committed files survive. Two sessions in a row have now lost M1's API keys the same way.
+- **Mitigation:** Set up an `.env` backup routine for M1, mirroring core Maya's. Copy to `~/storage/downloads/m1-env-backup.txt` after any .env change, so the keys survive the next reset.
+
+---
+
 ## Flag State
 | Flag | Default | Current |
 |------|---------|---------|
 | M1_ENABLED | false | false |
 | M1_DUAL_BRAIN_ENABLED | false | false |
+| NVIDIA_NIM_KEY | (none) | set |
+| M1_NVIDIA_NIM_MODEL | deepseek-ai/deepseek-v4-pro | set (live-verified) |
 *(add more as phases add them)*
 
 ---
 
 ## Current Status
-- **Active Phase:** Phase 3 — Smart Core (pending)
-- **Next Step:** Research — rank best free LLMs by capability + free-tier limits, adopt top model
-- **Notes:** M1 is a separate process, separate repo, no code shared with M-2.0. Connects to core Maya via HTTP only.
+- **Last Phase:** Phase 3 — Smart Core (DONE, built 2026-07-21)
+- **Next Step:** (none) — Phase 3 complete. M1 is fully built and live-verified through all 3 provider tiers.
+- **Notes:** M1 is a separate process, separate repo, no code shared with M-2.0. Connects to core Maya via HTTP only. Provider chain: NVIDIA NIM (primary) → Gemini (fallback 1) → Groq (fallback 2).
