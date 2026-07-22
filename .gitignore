@@ -7,3 +7,5 @@ dist/
 .env.backup
 node_modules/
 *.log
+.env.bak
+.env.*.bak

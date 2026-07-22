@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { readFileSync, writeFileSync } from "fs";
+import { copyFileSync, readFileSync, writeFileSync } from "fs";
 import * as readline from "readline";
 import * as path from "path";
 
@@ -59,6 +59,15 @@ function promptKey(provider: string): Promise<string> {
 
 function updateEnvFile(envKey: string, value: string): void {
   const envPath = path.resolve(__dirname, "..", ".env");
+  const bakPath = envPath + ".bak";
+
+  // Backup existing .env — failure never blocks the write
+  try {
+    copyFileSync(envPath, bakPath);
+  } catch {
+    // backup is best-effort
+  }
+
   let content: string;
   try {
     content = readFileSync(envPath, "utf-8");
