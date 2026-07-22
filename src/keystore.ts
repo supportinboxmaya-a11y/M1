@@ -44,6 +44,17 @@ export function readPool(): KeyPool {
     const raw = fs.readFileSync(POOL_FILE, "utf-8");
     return JSON.parse(raw) as KeyPool;
   } catch {
+    // Primary file missing or corrupt — try backup restore before giving up
+    try {
+      const cfg = loadConfig();
+      if (restoreFromBackup(cfg)) {
+        // Backup restored — read the freshly written primary
+        const raw = fs.readFileSync(POOL_FILE, "utf-8");
+        return JSON.parse(raw) as KeyPool;
+      }
+    } catch {
+      // restore also failed — fall through to empty
+    }
     return emptyPool();
   }
 }
@@ -188,4 +199,20 @@ export function revokeKey(pool: KeyPool, provider: "nim" | "gemini" | "groq", ke
     keys: remaining,
     archive: [...pool.archive, ...removed],
   };
+}
+
+// ── Restore pool from backup file ────────────────────────────────────────
+export function restoreFromBackup(cfg: M1Config): boolean {
+  try {
+    const raw = cfg.keysBackupPath;
+    const expanded = raw.startsWith("~/")
+      ? path.resolve(process.env.HOME || "/tmp", raw.slice(2))
+      : path.resolve(raw);
+    const content = fs.readFileSync(expanded, "utf-8");
+    const pool = JSON.parse(content) as KeyPool;
+    writePool(pool);
+    return true;
+  } catch {
+    return false;
+  }
 }

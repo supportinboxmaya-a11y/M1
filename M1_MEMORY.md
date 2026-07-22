@@ -65,6 +65,7 @@
 - [x] TEST: keystore disabled → M1 behaves exactly as Phase 3 — LIVE VERIFIED 2026-07-22: M1_KEYSTORE_ENABLED=false → lastProvider="nim" via .env key (not pool), alert generated normally, full regression confirmed
 - [x] TEST: tsc --noEmit clean, tsc build clean — LIVE VERIFIED 2026-07-22: zero errors
 - [x] CRUD: revokeKey() — soft-delete, moves key from pool.keys to pool.archive with status "revoked", unchanged pool on no-match (no throw) — LIVE VERIFIED 2026-07-22: key removed from active list, archived with correct status, non-matching revoke leaves pool untouched
+- [x] CRUD: restoreFromBackup() + auto-restore fallback in readPool() — LIVE VERIFIED 2026-07-22: keys.json deleted entirely, readPool() auto-detected missing file, restored from ~/storage/downloads/m1-keys-backup.json, recreated keys.json (296 bytes), byte-identical to backup — full Termux-reset recovery confirmed
 
 ---
 
