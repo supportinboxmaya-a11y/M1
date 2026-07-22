@@ -2,6 +2,8 @@ import { execSync } from "child_process";
 import { copyFileSync, readFileSync, writeFileSync } from "fs";
 import * as readline from "readline";
 import * as path from "path";
+import { loadConfig } from "./config";
+import { validateKey, readPool, writePool } from "./keystore";
 
 const PROVIDERS: Record<string, { name: string; envKey: string; url: string; instructions: string }> = {
   nim: {
@@ -87,6 +89,30 @@ function updateEnvFile(envKey: string, value: string): void {
   console.log(`✓ ${envKey} written to .env`);
 }
 
+async function validateAndAddToPool(provider: string, key: string): Promise<void> {
+  try {
+    const cfg = loadConfig();
+    const valid = await validateKey(provider as "nim" | "gemini" | "groq", key, cfg);
+    if (valid) {
+      const pool = readPool();
+      pool.keys.push({
+        provider: provider as "nim" | "gemini" | "groq",
+        key,
+        status: "active",
+        lastOk: new Date().toISOString(),
+        failCount: 0,
+        addedAt: new Date().toISOString(),
+      });
+      writePool(pool);
+      console.log("✓ Key validated and added to pool");
+    } else {
+      console.log("⚠ Key saved to .env but failed live validation — not added to pool. Check the key and try again.");
+    }
+  } catch (err) {
+    console.warn("[keygen] pool update skipped (non-fatal):", err);
+  }
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
@@ -108,14 +134,20 @@ async function main(): Promise<void> {
       process.exit(1);
     }
     const key = await promptKey(answer);
-    if (key) updateEnvFile(PROVIDERS[answer].envKey, key);
+    if (key) {
+      updateEnvFile(PROVIDERS[answer].envKey, key);
+      await validateAndAddToPool(answer, key);
+    }
     console.log("Done. Restart M1 for the new key to take effect.");
     return;
   }
 
   for (const arg of args) {
     const key = await promptKey(arg);
-    if (key) updateEnvFile(PROVIDERS[arg].envKey, key);
+    if (key) {
+      updateEnvFile(PROVIDERS[arg].envKey, key);
+      await validateAndAddToPool(arg, key);
+    }
   }
   console.log("Done. Restart M1 for the new key to take effect.");
 }

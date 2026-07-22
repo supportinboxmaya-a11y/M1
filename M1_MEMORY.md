@@ -59,6 +59,7 @@
 - [x] CRUD: src/keystore.ts — keys.json pool (provider, key, status, lastOk, failCount, addedAt) — LIVE VERIFIED 2026-07-22: write/read round-trip confirmed, keys.json lives in ~/.m1/ alongside state.json
 - [x] CRUD: keystore.ts — validateKey(), pickBest(), reportFailure() — LIVE VERIFIED 2026-07-22: pickBest selects lowest-failCount active key, reportFailure degrades on 429/401, validateKey confirmed true on real NIM key, false on fake key
 - [x] CRUD: auto-backup on every write to ~/storage/downloads/m1-keys-backup.json — LIVE VERIFIED 2026-07-22: keys.json (219 bytes) and backup file byte-identical, backup failure isolated in its own try/catch, cleanup confirmed
+- [x] CRUD: keygen.ts EXTENDED (not replaced) — validate, then write to pool — LIVE VERIFIED 2026-07-22: end-to-end test with real NIM key — validateKey passed, pool entry created (status active, failCount 0, lastOk/addedAt set), .env write unaffected, pool confirmed clean (1 entry, no duplicates)
 
 ---
 
