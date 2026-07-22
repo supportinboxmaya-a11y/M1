@@ -3,6 +3,7 @@ import { getMonitorResult } from "./monitor";
 import { loadConfig } from "./config";
 import { getDualBrainStatus, analyzeHistory } from "./dual-brain";
 import { readState } from "./storage";
+import { readPool } from "./keystore";
 
 const router = Router();
 
@@ -43,6 +44,45 @@ router.get("/health", (_req: Request, res: Response) => {
       uptime_sec: process.uptime(),
     },
   });
+});
+
+// GET /keys/status — keystore pool status (never leaks key values)
+router.get("/keys/status", (req: Request, res: Response) => {
+  try {
+    const cfg = loadConfig();
+
+    // Auth check
+    if (!cfg.keysToken) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+    const auth = req.headers.authorization;
+    if (!auth || auth !== `Bearer ${cfg.keysToken}`) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+
+    const pool = readPool();
+    const providers = ["nim", "gemini", "groq"] as const;
+    const counts: Record<string, { total: number; active: number; degraded: number; revoked: number }> = {};
+
+    for (const p of providers) {
+      const filtered = pool.keys.filter((k) => k.provider === p);
+      counts[p] = {
+        total: filtered.length,
+        active: filtered.filter((k) => k.status === "active").length,
+        degraded: filtered.filter((k) => k.status === "degraded").length,
+        revoked: filtered.filter((k) => k.status === "revoked").length,
+      };
+    }
+
+    res.json({
+      keystore_enabled: cfg.keystoreEnabled,
+      providers: counts,
+    });
+  } catch {
+    res.status(500).json({ error: "internal error" });
+  }
 });
 
 export default router;

@@ -61,10 +61,9 @@
 - [x] CRUD: auto-backup on every write to ~/storage/downloads/m1-keys-backup.json — LIVE VERIFIED 2026-07-22: keys.json (219 bytes) and backup file byte-identical, backup failure isolated in its own try/catch, cleanup confirmed
 - [x] CRUD: keygen.ts EXTENDED (not replaced) — validate, then write to pool — LIVE VERIFIED 2026-07-22: end-to-end test with real NIM key — validateKey passed, pool entry created (status active, failCount 0, lastOk/addedAt set), .env write unaffected, pool confirmed clean (1 entry, no duplicates)
 - [x] CRUD: dual-brain.ts callNim() — uses keystore pool via pickBest() when M1_KEYSTORE_ENABLED=true, falls back to cfg.nvidiaNimKey when disabled or pool empty (unchanged behavior preserved). reportFailure() + writePool() on non-200, isolated try/catch. — LIVE VERIFIED 2026-07-22: keystoreEnabled=false confirmed unchanged default behavior; keystoreEnabled=true confirmed .env fallback still loads; full fire test — real degraded state → pool key selected via pickBest → NIM fired → lastProvider="nim" → real alert generated → state restored clean
+- [x] CRUD: GET /keys/status — provider health only, never returns key values, Bearer token required — LIVE VERIFIED 2026-07-22: no token → 401, wrong token → 401, correct token → 200 with provider counts (nim: 1 active), response body scanned against real key value — confirmed no leak
 
----
-
-## Deferred to Later Steps
+--- to Later Steps
 - `.env` auto-backup/restore for core Maya's `.env` — requires M1 to be given filesystem read/write access to that one specific file path (an intentional, minimal exception to the HTTP-only design). Not done in Step 1.
 - Key add/rotate/delete via core Maya's authenticated `set_key()` route — requires an auth token, which M1 doesn't have yet. Not done in Step 1.
 
