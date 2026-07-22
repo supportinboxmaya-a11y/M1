@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { M1Config } from "./config";
+import { loadConfig, M1Config } from "./config";
 
 const STATE_DIR = path.resolve(
   process.env.HOME || process.env.USERPROFILE || ".",
@@ -51,13 +51,29 @@ export function readPool(): KeyPool {
 // ── Write ────────────────────────────────────────────────────────────────
 
 export function writePool(pool: KeyPool): void {
+  const content = JSON.stringify(pool, null, 2);
+
   try {
     if (!fs.existsSync(STATE_DIR)) {
       fs.mkdirSync(STATE_DIR, { recursive: true });
     }
-    fs.writeFileSync(POOL_FILE, JSON.stringify(pool, null, 2), "utf-8");
+    fs.writeFileSync(POOL_FILE, content, "utf-8");
   } catch (err) {
     console.error("[M1:keystore] failed to persist key pool:", err);
+  }
+
+  // Backup — separate try/catch, never blocks the primary write
+  try {
+    const cfg = loadConfig();
+    const raw = cfg.keysBackupPath;
+    const expanded = raw.startsWith("~/")
+      ? path.resolve(process.env.HOME || "/tmp", raw.slice(2))
+      : path.resolve(raw);
+    const dir = path.dirname(expanded);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(expanded, content, "utf-8");
+  } catch {
+    // backup is best-effort
   }
 }
 
