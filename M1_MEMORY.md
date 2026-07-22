@@ -60,6 +60,7 @@
 - [x] CRUD: keystore.ts — validateKey(), pickBest(), reportFailure() — LIVE VERIFIED 2026-07-22: pickBest selects lowest-failCount active key, reportFailure degrades on 429/401, validateKey confirmed true on real NIM key, false on fake key
 - [x] CRUD: auto-backup on every write to ~/storage/downloads/m1-keys-backup.json — LIVE VERIFIED 2026-07-22: keys.json (219 bytes) and backup file byte-identical, backup failure isolated in its own try/catch, cleanup confirmed
 - [x] CRUD: keygen.ts EXTENDED (not replaced) — validate, then write to pool — LIVE VERIFIED 2026-07-22: end-to-end test with real NIM key — validateKey passed, pool entry created (status active, failCount 0, lastOk/addedAt set), .env write unaffected, pool confirmed clean (1 entry, no duplicates)
+- [x] CRUD: dual-brain.ts callNim() — uses keystore pool via pickBest() when M1_KEYSTORE_ENABLED=true, falls back to cfg.nvidiaNimKey when disabled or pool empty (unchanged behavior preserved). reportFailure() + writePool() on non-200, isolated try/catch. — LIVE VERIFIED 2026-07-22: keystoreEnabled=false confirmed unchanged default behavior; keystoreEnabled=true confirmed .env fallback still loads; full fire test — real degraded state → pool key selected via pickBest → NIM fired → lastProvider="nim" → real alert generated → state restored clean
 
 ---
 

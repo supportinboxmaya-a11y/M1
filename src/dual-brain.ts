@@ -5,14 +5,34 @@ import { readState, updateDualBrain, HistoryEntry } from "./storage";
 const NIM_BASE = "https://integrate.api.nvidia.com/v1";
 
 async function callNim(prompt: string, cfg: M1Config): Promise<string | null> {
-  if (!cfg.nvidiaNimKey) return null;
+  // Determine which key to use — pool takes priority when keystore is enabled
+  let apiKey = cfg.nvidiaNimKey;
+  let poolKeyUsed = false;
+  let usedKeyValue = "";
+
+  if (cfg.keystoreEnabled) {
+    try {
+      const { readPool, pickBest, reportFailure, writePool } = await import("./keystore");
+      const pool = readPool();
+      const best = pickBest(pool, "nim");
+      if (best) {
+        apiKey = best.key;
+        poolKeyUsed = true;
+        usedKeyValue = best.key;
+      }
+    } catch {
+      // keystore error — fall through to cfg.nvidiaNimKey
+    }
+  }
+
+  if (!apiKey) return null;
 
   try {
     const res = await fetch(`${NIM_BASE}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${cfg.nvidiaNimKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: cfg.nvidiaNimModel,
@@ -24,6 +44,19 @@ async function callNim(prompt: string, cfg: M1Config): Promise<string | null> {
     });
     if (!res.ok) {
       console.error(`[M1:dual-brain] NVIDIA NIM returned ${res.status}: ${(await res.text()).slice(0, 200)}`);
+
+      // If a pool key was used, record the failure and persist
+      if (poolKeyUsed) {
+        try {
+          const { readPool, reportFailure, writePool } = await import("./keystore");
+          const pool = readPool();
+          const updated = reportFailure(pool, "nim", usedKeyValue, res.status);
+          writePool(updated);
+        } catch {
+          // storage error — non-fatal, fallback chain continues
+        }
+      }
+
       return null;
     }
     const body: any = await res.json();
