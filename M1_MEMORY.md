@@ -66,6 +66,7 @@
 - [x] TEST: tsc --noEmit clean, tsc build clean — LIVE VERIFIED 2026-07-22: zero errors
 - [x] CRUD: revokeKey() — soft-delete, moves key from pool.keys to pool.archive with status "revoked", unchanged pool on no-match (no throw) — LIVE VERIFIED 2026-07-22: key removed from active list, archived with correct status, non-matching revoke leaves pool untouched
 - [x] CRUD: restoreFromBackup() + auto-restore fallback in readPool() — LIVE VERIFIED 2026-07-22: keys.json deleted entirely, readPool() auto-detected missing file, restored from ~/storage/downloads/m1-keys-backup.json, recreated keys.json (296 bytes), byte-identical to backup — full Termux-reset recovery confirmed
+- [x] TEST: full multi-key failover chain — LIVE VERIFIED 2026-07-22: initial pickBest selects among active keys, 3× 401 degrades key-primary, pickBest correctly switches to key-secondary (only remaining active key), both keys degraded → pickBest returns null without throwing
 
 ---
 
