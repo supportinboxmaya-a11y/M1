@@ -62,8 +62,12 @@
 - [x] CRUD: keygen.ts EXTENDED (not replaced) — validate, then write to pool — LIVE VERIFIED 2026-07-22: end-to-end test with real NIM key — validateKey passed, pool entry created (status active, failCount 0, lastOk/addedAt set), .env write unaffected, pool confirmed clean (1 entry, no duplicates)
 - [x] CRUD: dual-brain.ts callNim() — uses keystore pool via pickBest() when M1_KEYSTORE_ENABLED=true, falls back to cfg.nvidiaNimKey when disabled or pool empty (unchanged behavior preserved). reportFailure() + writePool() on non-200, isolated try/catch. — LIVE VERIFIED 2026-07-22: keystoreEnabled=false confirmed unchanged default behavior; keystoreEnabled=true confirmed .env fallback still loads; full fire test — real degraded state → pool key selected via pickBest → NIM fired → lastProvider="nim" → real alert generated → state restored clean
 - [x] CRUD: GET /keys/status — provider health only, never returns key values, Bearer token required — LIVE VERIFIED 2026-07-22: no token → 401, wrong token → 401, correct token → 200 with provider counts (nim: 1 active), response body scanned against real key value — confirmed no leak
+- [x] TEST: keystore disabled → M1 behaves exactly as Phase 3 — LIVE VERIFIED 2026-07-22: M1_KEYSTORE_ENABLED=false → lastProvider="nim" via .env key (not pool), alert generated normally, full regression confirmed
+- [x] TEST: tsc --noEmit clean, tsc build clean — LIVE VERIFIED 2026-07-22: zero errors
 
---- to Later Steps
+---
+
+## Deferred to Later Steps
 - `.env` auto-backup/restore for core Maya's `.env` — requires M1 to be given filesystem read/write access to that one specific file path (an intentional, minimal exception to the HTTP-only design). Not done in Step 1.
 - Key add/rotate/delete via core Maya's authenticated `set_key()` route — requires an auth token, which M1 doesn't have yet. Not done in Step 1.
 
@@ -88,6 +92,6 @@
 ---
 
 ## Current Status
-- **Last Phase:** Phase 3 — Smart Core (DONE, built 2026-07-21)
-- **Next Step:** (none) — Phase 3 complete. M1 is fully built and live-verified through all 3 provider tiers.
-- **Notes:** M1 is a separate process, separate repo, no code shared with M-2.0. Connects to core Maya via HTTP only. Provider chain: NVIDIA NIM (primary) → Gemini (fallback 1) → Groq (fallback 2).
+- **Last Phase:** Phase 4 — Safer Keygen (DONE, committed 2026-07-22)
+- **Next Step:** (none) — Phase 4 complete. Keystore system live-verified end-to-end: keygen writes validated keys to pool, dual-brain picks best active key on NIM calls, auto-backup to ~/storage/downloads/m1-keys-backup.json, /keys/status route returns provider health counts (never key values), full regression confirmed with keystore disabled. All 10 check items live-verified.
+- **Notes:** M1 is a separate process, separate repo, no code shared with M-2.0. Connects to core Maya via HTTP only. Provider chain: NVIDIA NIM (primary, from keystore pool or .env fallback) → Gemini (fallback 1) → Groq (fallback 2).
