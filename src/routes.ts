@@ -3,7 +3,7 @@ import { getMonitorResult } from "./monitor";
 import { loadConfig } from "./config";
 import { getDualBrainStatus, analyzeHistory } from "./dual-brain";
 import { readState } from "./storage";
-import { readPool } from "./keystore";
+import { readPool, pickBest } from "./keystore";
 
 const router = Router();
 
@@ -80,6 +80,46 @@ router.get("/keys/status", (req: Request, res: Response) => {
       keystore_enabled: cfg.keystoreEnabled,
       providers: counts,
     });
+  } catch {
+    res.status(500).json({ error: "internal error" });
+  }
+});
+
+// GET /keys/reveal — intentionally leaks the actual key value.
+// This exists ONLY for trusted local callers (core Maya on the same device).
+// /keys/status guarantees it never leaks key values — that guarantee does
+// NOT apply here. Callers must already have the Bearer token proving they
+// are authorised to obtain the raw secret.
+router.get("/keys/reveal", (req: Request, res: Response) => {
+  try {
+    const cfg = loadConfig();
+
+    // Auth check (identical to /keys/status)
+    if (!cfg.keysToken) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+    const auth = req.headers.authorization;
+    if (!auth || auth !== `Bearer ${cfg.keysToken}`) {
+      res.status(401).json({ error: "unauthorized" });
+      return;
+    }
+
+    const provider = req.query.provider as string | undefined;
+    if (!provider || !["nim", "gemini", "groq"].includes(provider)) {
+      res.status(400).json({ error: "invalid provider" });
+      return;
+    }
+
+    const pool = readPool();
+    const bestKey = pickBest(pool, provider as "nim" | "gemini" | "groq");
+
+    if (!bestKey) {
+      res.status(404).json({ error: "no active key for provider" });
+      return;
+    }
+
+    res.json({ provider, key: bestKey.key });
   } catch {
     res.status(500).json({ error: "internal error" });
   }

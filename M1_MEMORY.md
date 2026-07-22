@@ -70,6 +70,13 @@
 
 ---
 
+### Phase 5 — /keys/reveal route (DONE, committed 2026-07-22)
+- [x] CRUD: GET /keys/reveal — returns raw key value for trusted local caller (core Maya), distinct from /keys/status's no-leak guarantee. Bearer token + provider param required.
+- [x] TEST: LIVE VERIFIED 2026-07-22: no token → 401, bad provider → 400, correct token+nim → 200 with real key, provider with no pool key → 404
+- [x] TEST: tsc --noEmit clean
+
+---
+
 ## Deferred to Later Steps
 - `.env` auto-backup/restore for core Maya's `.env` — requires M1 to be given filesystem read/write access to that one specific file path (an intentional, minimal exception to the HTTP-only design). Not done in Step 1.
 - Key add/rotate/delete via core Maya's authenticated `set_key()` route — requires an auth token, which M1 doesn't have yet. Not done in Step 1.
@@ -95,6 +102,6 @@
 ---
 
 ## Current Status
-- **Last Phase:** Phase 4 — Safer Keygen (DONE, committed 2026-07-22)
-- **Next Step:** (none) — Phase 4 complete. Keystore system live-verified end-to-end: keygen writes validated keys to pool, dual-brain picks best active key on NIM calls, auto-backup to ~/storage/downloads/m1-keys-backup.json, /keys/status route returns provider health counts (never key values), full regression confirmed with keystore disabled. All 10 check items live-verified.
+- **Last Phase:** Phase 5 — /keys/reveal route (DONE, committed 2026-07-22)
+- **Next Step:** (none) — Phase 5 complete. /keys/reveal returns raw key value for trusted local callers (core Maya) via Bearer token + provider param, with no-leak distinction from /keys/status clearly documented in code. All four test cases live-verified: 401/400/200/404. tsc clean.
 - **Notes:** M1 is a separate process, separate repo, no code shared with M-2.0. Connects to core Maya via HTTP only. Provider chain: NVIDIA NIM (primary, from keystore pool or .env fallback) → Gemini (fallback 1) → Groq (fallback 2).
