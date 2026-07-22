@@ -17,6 +17,10 @@ export interface M1Config {
   geminiCooldownMin: number;
   analysisWindowMin: number;
   historyMaxEntries: number;
+  // Keystore
+  keystoreEnabled: boolean;
+  keysToken: string;
+  keysBackupPath: string;
 }
 
 function required(name: string): string {
@@ -56,6 +60,9 @@ export function loadConfig(): M1Config {
     geminiCooldownMin: optionalInt("M1_GEMINI_COOLDOWN_MIN", 15),
     analysisWindowMin: optionalInt("M1_ANALYSIS_WINDOW_MIN", 5),
     historyMaxEntries: optionalInt("M1_HISTORY_MAX_ENTRIES", 100),
+    keystoreEnabled: optional("M1_KEYSTORE_ENABLED", "false").toLowerCase() === "true",
+    keysToken: optional("M1_KEYS_TOKEN", ""),
+    keysBackupPath: optional("M1_KEYS_BACKUP_PATH", "~/storage/downloads/m1-keys-backup.json"),
   };
 
   // Soft-fail: dual brain needs at least one provider key — warn and disable if none
