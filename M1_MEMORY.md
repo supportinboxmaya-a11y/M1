@@ -57,6 +57,7 @@
 - [x] FIX: .gitignore — added .env.bak, .env.*.bak — VERIFIED: git status confirms .env.bak untracked
 - [x] CRUD: config.ts — M1_KEYSTORE_ENABLED (default false), M1_KEYS_TOKEN, M1_KEYS_BACKUP_PATH — LIVE VERIFIED 2026-07-22: all three load correctly, default path resolved to ~/storage/downloads/m1-keys-backup.json
 - [x] CRUD: src/keystore.ts — keys.json pool (provider, key, status, lastOk, failCount, addedAt) — LIVE VERIFIED 2026-07-22: write/read round-trip confirmed, keys.json lives in ~/.m1/ alongside state.json
+- [x] CRUD: keystore.ts — validateKey(), pickBest(), reportFailure() — LIVE VERIFIED 2026-07-22: pickBest selects lowest-failCount active key, reportFailure degrades on 429/401, validateKey confirmed true on real NIM key, false on fake key
 
 ---
 
