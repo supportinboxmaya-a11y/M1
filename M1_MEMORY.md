@@ -64,6 +64,7 @@
 - [x] CRUD: GET /keys/status — provider health only, never returns key values, Bearer token required — LIVE VERIFIED 2026-07-22: no token → 401, wrong token → 401, correct token → 200 with provider counts (nim: 1 active), response body scanned against real key value — confirmed no leak
 - [x] TEST: keystore disabled → M1 behaves exactly as Phase 3 — LIVE VERIFIED 2026-07-22: M1_KEYSTORE_ENABLED=false → lastProvider="nim" via .env key (not pool), alert generated normally, full regression confirmed
 - [x] TEST: tsc --noEmit clean, tsc build clean — LIVE VERIFIED 2026-07-22: zero errors
+- [x] CRUD: revokeKey() — soft-delete, moves key from pool.keys to pool.archive with status "revoked", unchanged pool on no-match (no throw) — LIVE VERIFIED 2026-07-22: key removed from active list, archived with correct status, non-matching revoke leaves pool untouched
 
 ---
 

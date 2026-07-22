@@ -170,3 +170,22 @@ export function reportFailure(
   };
   return updated;
 }
+
+// ── Revoke a key (moves to archive) ──────────────────────────────────────
+export function revokeKey(pool: KeyPool, provider: "nim" | "gemini" | "groq", key: string): KeyPool {
+  const removed: StoredKey[] = [];
+  const remaining = pool.keys.filter((k) => {
+    if (k.provider === provider && k.key === key) {
+      removed.push({ ...k, status: "revoked" as const });
+      return false;
+    }
+    return true;
+  });
+
+  if (removed.length === 0) return { keys: [...pool.keys], archive: [...pool.archive] };
+
+  return {
+    keys: remaining,
+    archive: [...pool.archive, ...removed],
+  };
+}
